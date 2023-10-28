@@ -258,15 +258,15 @@ network read_network()
 }
 
 
-int main()
-{
-	network Alarm;
-	Alarm=read_network();
-    
-// Example: to do something
-	cout<<"Perfect! Hurrah! \n";
-	
-}
+//int main()
+//{
+//	network Alarm;
+//	Alarm=read_network();
+//
+//// Example: to do something
+//	cout<<"Perfect! Hurrah! \n";
+//
+//}
 
 
 
