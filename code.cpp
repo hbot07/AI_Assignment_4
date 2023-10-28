@@ -65,19 +65,28 @@ void calculate_priors(network Alarm, vector<vector<string> > records){
 float get_prob(vector<string> var_names, vector<string> permutation,vector<vector<string> > records) {
     int numRecords=records[0].size();
     vector<bool> count(numRecords, true);
-    vector<double> records_weight_column(numRecords, 1.0);
-    map<string,int> variable_mapping;
-    variable_mapping["A"]=0;
-    variable_mapping["B"]=1;
-    variable_mapping["C"]=2;
+    vector<double> records_weight_column(numRecords, float(1));
+    // map<string,int> variable_mapping;
+    // variable_mapping["A"]=0;
+    // variable_mapping["B"]=1;
+    // variable_mapping["C"]=2;
     for (int i = 0; i < var_names.size(); i++) {
-        for (int j = 0; j < records.size(); j++) {
-            if (records[j][variable_mapping[var_names[i]]] != permutation[i]) {
-                count[j] = false;
+        for (int j = 0; j < records[0].size(); j++) {
+            string s="";
+            s+="\"";
+            s+=permutation[i];
+            s+="\"";
+            //cout<<s<<endl;
+            if (records[variable_mapping[var_names[i]]][j] != s) {
+                count[j] = 0;
             }
+            // for(int i=0;i<count.size();i++){
+            //    cout<<count[i]<<endl;
+            // }
+            // cout<<endl;
         }
     }
-
+    
     double sum_weight_column = 0.0;
     for (int i = 0; i < numRecords; i++) {
         if (count[i]) {
@@ -89,7 +98,7 @@ float get_prob(vector<string> var_names, vector<string> permutation,vector<vecto
     for (int weight : records_weight_column) {
         sum_all_weights += weight;
     }
-
+    //cout<<sum_all_weights;
     double prob = sum_weight_column / sum_all_weights;
 
     return prob;
