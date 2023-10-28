@@ -2,7 +2,7 @@
 // Produced by BayesianNetworks package in JavaBayes
 // Output created Sun Nov 02 17:58:15 GMT+00:00 1997
 // Bayesian network 
-network "Alarm" { //37 variables and 37 probability distributions
+network "Alarm" { //37 variables and 37 distributions
 }
 variable “A” {
 type discrete[2] { “True” “False” };
@@ -11,14 +11,14 @@ variable “B” {
 type discrete[2] { “True” “False” };
 }
 variable “C” {
-type discrete[2] { “True” “False” };
+type discrete[2] { "True" "False" };
 }
-probability(  “A”  ) {
+probability("A") {
 table 0.2 0.8 ;
 }
-probability(  “B”  "A"  ) {
+probability("B"  "A") {
 table  -1 -1 -1 -1 ;
 }
-probability(  “C”  "B"  ) {
+probability("C"  "B") {
 table  -1 -1 -1 -1 ;
 }

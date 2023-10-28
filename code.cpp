@@ -48,6 +48,17 @@ void read_records(const string& filename, int ncols, vector<vector<string> >& re
     }
 }
 
+void calculate_priors(network Alarm, vector<vector<string> > records){
+    vector<list<Graph_Node>::iterator> parentless_nodes;
+
+    for(int i=0; i < Alarm.netSize(); i++){
+        if(Alarm.get_nth_node(i)->get_Parents().size() == 0){
+            parentless_nodes.push_back(Alarm.get_nth_node(i));
+        }
+    }
+    cout << "parentless nodes: " << parentless_nodes.size() << endl;
+}
+
 int main()
 {
     network Alarm;
@@ -62,12 +73,7 @@ int main()
     read_records("records.dat", 3, records);
     cout << records[0][3] << endl;
 
-}
-
-void calculate_priors(network Alarm, vector<vector<string> > records){
-    vector<Graph_Node> parentless_nodes;
-
-    for(int i=0; i < Alarm.netSize(); i++){
-
-    }
+    calculate_priors(Alarm, records);
+    cout<<Alarm.get_nth_node(1)->get_name()<<endl;
+    //cout << Alarm.get_nth_node(0)->get_children().size() << endl;
 }
