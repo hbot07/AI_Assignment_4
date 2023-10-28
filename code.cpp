@@ -62,33 +62,39 @@ void calculate_priors(network Alarm, vector<vector<string> > records){
     cout << "parentless nodes: " << parentless_nodes.size() << endl;
 }
 
-float calc_prob(vector<string> var_names, vector<string> permutation,vector<vector<string> > records){
-    int numColumns = records[0].size();
+float get_prob(vector<string> var_names, vector<string> permutation,vector<vector<string> > records) {
+    int numRecords=records[0].size();
+    vector<bool> count(numRecords, true);
+    vector<double> records_weight_column(numRecords, 1.0);
     map<string,int> variable_mapping;
     variable_mapping["A"]=0;
     variable_mapping["B"]=1;
     variable_mapping["C"]=2;
-    vector<double> recordsWeightColumn(numColumns, 1.0);
-    vector<bool> count(numColumns, true);
     for (int i = 0; i < var_names.size(); i++) {
-        int varIndex = variable_mapping[var_names[i]]; 
         for (int j = 0; j < records.size(); j++) {
-            if (records[j][varIndex] != permutation[i]) {
-            count[j] = false;
+            if (records[j][variable_mapping[var_names[i]]] != permutation[i]) {
+                count[j] = false;
             }
         }
     }
-    double sumWeight = 0.0;
-    for (int i = 0; i < records.size(); ++i) {
+
+    double sum_weight_column = 0.0;
+    for (int i = 0; i < numRecords; i++) {
         if (count[i]) {
-            sumWeight += recordsWeightColumn[i];
+            sum_weight_column += records_weight_column[i];
         }
     }
-    double totalSumWeight = accumulate(recordsWeightColumn.begin(), recordsWeightColumn.end(), 0.0);
 
-    double prob = sumWeight / totalSumWeight;
+    double sum_all_weights = 0.0;
+    for (int weight : records_weight_column) {
+        sum_all_weights += weight;
+    }
+
+    double prob = sum_weight_column / sum_all_weights;
+
     return prob;
 }
+
 
 int main()
 {
@@ -102,9 +108,15 @@ int main()
 
     vector<vector<string> > records(ncols);
     read_records("records.dat", 3, records);
-
+    // for(int i=0;i<records.size();i++){
+    //     for(int j=0;j<records[i].size();j++){
+    //         cout<<records[i][j]<<' ';
+    //         cout<<endl;
+    //     }
+    //     cout<<endl;
+    // }
     //calculate_priors(Alarm, records);
-    cout<<calc_prob({"A","B"},{"True","False"},records)<<endl;
+    cout<<get_prob({"A","B"},{"True","False"},records)<<endl;
     //cout<<Alarm.get_nth_node(1)->get_name()<<endl;
     //cout << Alarm.get_nth_node(0)->get_children().size() << endl;
 }
