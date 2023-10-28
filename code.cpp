@@ -6,9 +6,6 @@
 #include "startup_code.cpp"
 using namespace std;
 
-
-// read records.dat and store in column arrays
-
 void read_records(const string& filename, int ncols, vector<vector<string> >& records){
     ifstream inputFile(filename);
     if (!inputFile.is_open()) {
@@ -18,7 +15,6 @@ void read_records(const string& filename, int ncols, vector<vector<string> >& re
 
     cout << "reading " << filename << endl;
     string line;
-    cout << line << endl;
     while(getline(inputFile, line)){
 //        cout << "reading line" << endl;
         size_t pos = 0;
@@ -46,6 +42,7 @@ void read_records(const string& filename, int ncols, vector<vector<string> >& re
             cout << "error: wrong length" << endl;
         }
     }
+    cout << "done reading" << endl;
 }
 
 void calculate_priors(network Alarm, vector<vector<string> > records){
@@ -56,7 +53,9 @@ void calculate_priors(network Alarm, vector<vector<string> > records){
             parentless_nodes.push_back(Alarm.get_nth_node(i));
         }
     }
-    cout << "parentless nodes: " << parentless_nodes.size() << endl;
+    cout << "#parentless nodes: " << parentless_nodes.size() << endl;
+
+
 }
 
 int main()
@@ -68,12 +67,10 @@ int main()
     cout<<"Perfect! Hurrah! \n";
 
     int ncols = Alarm.netSize();
-
     vector<vector<string> > records(ncols);
     read_records("records.dat", 3, records);
-    cout << records[0][3] << endl;
 
     calculate_priors(Alarm, records);
-    cout<<Alarm.get_nth_node(1)->get_name()<<endl;
-    //cout << Alarm.get_nth_node(0)->get_children().size() << endl;
+
+
 }
