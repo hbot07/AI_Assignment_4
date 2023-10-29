@@ -62,14 +62,10 @@ void calculate_priors(network Alarm, vector<vector<string> > records){
     cout << "parentless nodes: " << parentless_nodes.size() << endl;
 }
 
-float get_prob(vector<string> var_names, vector<string> permutation,vector<vector<string> > records) {
+float get_prob(vector<string> var_names, vector<string> permutation,vector<vector<string> > records, map<string,int> variable_mapping) {
     int numRecords=records[0].size();
     vector<bool> count(numRecords, true);
     vector<double> records_weight_column(numRecords, float(1));
-    // map<string,int> variable_mapping;
-    // variable_mapping["A"]=0;
-    // variable_mapping["B"]=1;
-    // variable_mapping["C"]=2;
     for (int i = 0; i < var_names.size(); i++) {
         for (int j = 0; j < records[0].size(); j++) {
             string s="";
@@ -104,6 +100,52 @@ float get_prob(vector<string> var_names, vector<string> permutation,vector<vecto
     return prob;
 }
 
+void update_bif(const string& in_filename, const string& out_filename,map<string,int> variable_mapping,vector<vector<float>> CPT){
+    ifstream myfile(filename); 
+    string temp_input;
+    string line;
+    ofstream out;
+    string name;
+    out.open(outfile);
+    if (!myfile.is_open()){
+        return;
+    }
+    else{
+        while (! myfile.eof() )
+            {
+                stringstream ss;
+                getline (myfile,line);
+                ss.str(line);
+
+                ss>>temp_input;
+                if(temp_input.compare("probability")==0)
+                {                        
+                    ss>>temp_input;
+                    ss>>temp_input;
+                    int currentID = (variable_mapping.find(temp_input)->second);
+                    out << line << endl;
+                    getline (myfile,line);
+                    out << "    table ";
+                    int i=0;
+                    while(i < CPT[currentID].size())
+                    {
+                        if(CPT[currentID][i]<0.0001)
+                            out << "0.0001" << " ";
+                        else
+                            out << fixed << setprecision(4) << CPT[currentID][i] << " ";
+                        i++;
+                    }
+                    out << ";" << endl;
+                }
+                else if(line.compare("")!=0)
+                    out << line << endl;
+                else 
+                    out << line;
+            }
+            
+            myfile.close();
+    }
+}
 
 int main()
 {
