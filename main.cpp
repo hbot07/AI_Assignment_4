@@ -332,7 +332,7 @@ double get_prob(Graph_Node& node, int index, vector<vector<string> >& records, n
     return numerator/denominator;
 }
 
-double get_prob(vector<vector<string> >& records, vector<string>& parent_perm_values, vector<int>& parent_indices, string& node_value, int node_index){
+double get_prob(vector<vector<string> >& records, vector<string>& parent_perm_values, vector<int>& parent_indices, string& node_value, int node_index, vector<double>& records_weights){
     double numerator = 1.0;
     for(int i=0; i<records[0].size(); i++){
         bool matching = true;
@@ -343,7 +343,9 @@ double get_prob(vector<vector<string> >& records, vector<string>& parent_perm_va
             }
         }
         if(node_value == records[node_index][i] && matching){
-            numerator++;
+            numerator += records_weights.at(i);
+//            cout << "weight added: " << records_weights[i] << endl;
+//            cout << "numerator: " << numerator << endl;
         }
     }
     double denominator = records[0].size();
@@ -424,8 +426,8 @@ void get_one_CPT(Graph_Node& node, vector<vector<string> >& records, vector<floa
     }
 }
 
-void get_one_CPT2(Graph_Node& node, vector<vector<string> >& records, vector<float>& CPT, network& Alarm){
-    cout << "getting CPT for " << node.get_name() << endl;
+void get_one_CPT2(Graph_Node& node, vector<vector<string> >& records, vector<float>& CPT, network& Alarm, vector<double>& records_weights){
+//    cout << "getting CPT for " << node.get_name() << endl;
     vector<string> node_values = node.get_values();
     vector<string> parents = node.get_Parents();
 
@@ -444,7 +446,7 @@ void get_one_CPT2(Graph_Node& node, vector<vector<string> >& records, vector<flo
 
     for(auto & node_val:node_values){
         for(auto & perm:perms){
-            CPT.push_back(get_prob(records, perm, parent_indices, node_val, node_index));
+            CPT.push_back(get_prob(records, perm, parent_indices, node_val, node_index, records_weights));
         }
     }
 }
@@ -463,11 +465,12 @@ void normalise_CPT(vector<float>& CPT, Graph_Node& node){
     }
 }
 
-void fill_all_CPT(network& Alarm, vector<vector<string> >& records) {
+void fill_all_CPT(network& Alarm, vector<vector<string> >& records, vector<double>& records_weights) {
     for(int i=0; i<Alarm.netSize(); i++){
         vector<float> CPT;
         Graph_Node& node = *Alarm.get_nth_node(i);
-        get_one_CPT2(node, records, CPT, Alarm);
+        get_one_CPT2(node, records, CPT, Alarm, records_weights);
+
         normalise_CPT(CPT, node);
         node.set_CPT(CPT);
     }
@@ -498,6 +501,62 @@ void write_bif(network& Alarm) {
     }
 }
 
+void e_process_row(network& Alarm, vector<string>& row, int node_idx, vector<vector<string> >& new_records, vector<double>& new_records_weights){
+    Graph_Node& node = *Alarm.get_nth_node(node_idx);
+    vector<string> node_values = node.get_values();
+    vector<string> parents = node.get_Parents();
+
+    for(auto & node_value: node_values){
+        vector<string> new_row;
+        for(int j=0; j<row.size(); j++){
+            new_row.push_back(row[j]);
+        }
+        new_row[node_idx] = node_value;
+
+        for(int j=0; j<row.size(); j++){
+            new_records[j].push_back(row[j]);
+        }
+        new_records_weights.push_back(1.0/node_values.size());
+    }
+}
+
+void expectation_step(network& Alarm, vector<vector<string> >& records, vector<vector<string> >& new_records, vector<double>& records_weights, vector<double>& new_records_weights){
+    for(int i=0; i<records[0].size(); i++){
+        vector<string> row;
+        for(int j=0; j<records.size(); j++){
+            row.push_back(records[j][i]);
+        }
+
+        auto it = find(row.begin(), row.end(), "\"?\"");
+        if(it == row.end()){
+            for(int j=0; j<row.size(); j++){
+                new_records[j].push_back(row[j]);
+            }
+            new_records_weights.push_back(1.0);
+        }
+        else{
+            e_process_row(Alarm, row, distance(row.begin(), it), new_records, new_records_weights);
+        }
+    }
+}
+
+void expectation_maximisation(network& Alarm, vector<vector<string> >& records, vector<double>& records_weights){
+    int num_iterations = 5;
+    for(int i=0; i<num_iterations; i++){
+        cout << "iteration " << i+1 << endl;
+        vector<vector<string> > new_records;
+        for(int j=0; j<records.size(); j++){
+            vector<string> temp;
+            new_records.push_back(temp);
+        }
+        vector<double> new_records_weights;
+        cout << "expectation step" << endl;
+        expectation_step(Alarm, records, new_records, records_weights, new_records_weights);
+        cout << "maximisation step" << endl;
+        fill_all_CPT(Alarm, new_records, new_records_weights);
+    }
+}
+
 int main(){
     chrono::steady_clock::time_point begin = chrono::steady_clock::now();
 
@@ -507,6 +566,11 @@ int main(){
     vector<vector<string> > records(37);
     read_records("records.dat", 37, records);
 
+    vector<double> records_weights;
+    for(int i=0; i<records[0].size(); i++){
+        records_weights.push_back(1);
+    }
+
     // print first 2 records
     for(int i=0; i<2; i++){
         for(int j=0; j<37; j++){
@@ -514,9 +578,10 @@ int main(){
         }
         cout << endl;
     }
-    fill_all_CPT(Alarm, records);
+    fill_all_CPT(Alarm, records, records_weights);
 
     chrono::steady_clock::time_point end = chrono::steady_clock::now();
+    expectation_maximisation(Alarm, records, records_weights);
     write_bif(Alarm);
-    cout << "Time taken = " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << "s" << endl;
+    cout << "Time taken = " << chrono::duration_cast<chrono::seconds>(end - begin).count() << " s" << endl;
 }
