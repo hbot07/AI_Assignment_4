@@ -1,4 +1,7 @@
 //
+// Created by Parth Thakur on 30/10/23.
+//
+//
 // Created by Parth Thakur on 29/10/23.
 //
 #include <iostream>
@@ -407,49 +410,14 @@ void read_records(const string& filename, int ncols, vector<vector<string> >& re
     cout << "number of records: " << records[0].size() << endl;
 }
 
-double get_prob(Graph_Node& node, int index, vector<vector<string> >& records, network& Alarm){
-    vector<string> node_values = node.get_values();
-    vector<string> parents = node.get_Parents();
-    vector<vector<string> > parents_values;
-
-    for(auto & parent : parents){
-        parents_values.push_back(Alarm.search_node(parent)->get_values());
-    }
-
-    double numerator = 1.0;
-    vector<int> parent_permutation;
-    int remaining = index;
-
-    for(int i=parents.size()-1; i>-1; i--){
-        parent_permutation.push_back(remaining % parents_values[i].size());
-        remaining = remaining / parents_values[i].size();
-    }
-    // reverse the vector parent_permutation
-    reverse(parent_permutation.begin(), parent_permutation.end());
-
-    string node_value = node_values[remaining % node_values.size()];
-    vector<string> parent_perm_values;
-    for(int i=0; i<parent_permutation.size() ; i++){
-        parent_perm_values.push_back(parents_values.at(i).at(parent_permutation.at(i)));
-    }
-    for(int i=0; i<records[0].size(); i++){
-        bool matching = true;
-        for(int j=0; j<parent_perm_values.size(); j++){
-            if(parent_perm_values[j] != records[Alarm.get_index(parents[j])][i]){
-                matching = false;
-                break;
-            }
-        }
-        if(node_value == records[Alarm.get_index(node.get_name())][i] && matching){
-            numerator++;
-        }
-    }
-    double denominator = records[0].size();
-    return numerator/denominator;
-}
-
 double get_prob(vector<vector<string> >& records, vector<string>& parent_perm_values, vector<int>& parent_indices, string& node_value, int node_index, vector<double>& records_weights){
-    double numerator = 0.1;
+    //print 1st record
+//    for(int i=0; i<records.size(); i++){
+//        cout << records[i][0] << " ";
+//    }
+//    cout << endl;
+
+    double numerator = 0.0001;
     for(int i=0; i<records[0].size(); i++){
         bool matching = true;
         for(int j=0; j<parent_perm_values.size(); j++){
@@ -466,7 +434,6 @@ double get_prob(vector<vector<string> >& records, vector<string>& parent_perm_va
     for(int i=0; i<records_weights.size(); i++){
         denominator += records_weights.at(i);
     }
-
     return numerator/denominator;
 }
 
@@ -492,26 +459,6 @@ std::vector<std::vector<std::string> > cartesianProduct(const std::vector<std::v
     return result;
 }
 
-void get_one_CPT(Graph_Node& node, vector<vector<string> >& records, vector<float>& CPT, network& Alarm){
-//    cout << "getting CPT for " << node.get_name() << endl;
-    vector<string> node_values = node.get_values();
-    vector<string> parents = node.get_Parents();
-
-    vector<vector<string> > parents_values;
-    for(auto & parent : parents){
-        parents_values.push_back(Alarm.search_node(parent)->get_values());
-    }
-
-    int total_values = node_values.size();
-    for(auto & parent : parents_values){
-        total_values *= parent.size();
-    }
-
-    for(int i=0; i<total_values; i++){
-        cout << "getting prob for " << i << endl;
-        CPT.push_back(get_prob(node, i, records, Alarm));
-    }
-}
 
 map<string, map<vector<string>, int > > cpt_map;
 void get_one_CPT2(Graph_Node& node, vector<vector<string> >& records, vector<float>& CPT, network& Alarm, vector<double>& records_weights){
@@ -592,7 +539,7 @@ void write_bif(network& Alarm) {
 }
 
 double get_prob_for_weights(network& Alarm, vector<string> row, Graph_Node& node, string node_val,
-                          int node_idx){
+                            int node_idx){
     vector<string> parents = node.get_Parents();
     vector<string> perm;
     for(int i=0; i<parents.size(); i++){
@@ -647,7 +594,7 @@ void e_process_row(network& Alarm, vector<string>& row, int node_idx, vector<vec
         new_row[node_idx] = node_value;
 
         for(int j=0; j<row.size(); j++){
-            new_records[j].push_back(row[j]);
+            new_records[j].push_back(new_row[j]);
         }
     }
     get_weights(Alarm, row, node, node_values, parents, new_records_weights, node_idx);
@@ -710,17 +657,16 @@ void expectation_maximisation(network& Alarm, vector<vector<string> >& records, 
         write_bif(Alarm);
 
         //print weights
-        for(int i=0; i<5; i++){
-            cout << new_records_weights[i] << " ";
-        }
-        cout << endl;
+//        for(int i=0; i<5; i++){
+//            cout << new_records_weights[i] << " ";
+//        }
+//        cout << endl;
 
         //print 1st records
         for(int i=0; i<37; i++){
             cout << new_records[i][0] << " ";
         }
         cout << endl;
-
     }
 }
 

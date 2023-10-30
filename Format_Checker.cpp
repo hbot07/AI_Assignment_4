@@ -369,27 +369,27 @@ network read_network(char* filename)
     return Alarm;
 }
 
-int main()
-{
-	network Alarm1,Alarm2;
-	check_format();
-    Alarm1=read_network((char*)"solved_alarm.bif");
-    Alarm2=read_network((char*)"gold_alarm.bif");
-    float score=0;
-    for(int i=0;i<Alarm1.netSize();i++)
-    {
-        list<Graph_Node>::iterator listIt1=Alarm1.get_nth_node(i);
-        list<Graph_Node>::iterator listIt2=Alarm2.get_nth_node(i);
-        vector<float> cpt1=listIt1->get_CPT();
-        vector<float> cpt2=listIt2->get_CPT();
-        for(int j=0;j<cpt1.size();j++)
-            score+=fabs(cpt1[j]-cpt2[j]);
-    }
-   cout <<"Score is "<<score;
-
-	//cout<<Alarm.netSize();
-	
-}
+//int main()
+//{
+//	network Alarm1,Alarm2;
+//	check_format();
+//    Alarm1=read_network((char*)"solved_alarm.bif");
+//    Alarm2=read_network((char*)"gold_alarm.bif");
+//    float score=0;
+//    for(int i=0;i<Alarm1.netSize();i++)
+//    {
+//        list<Graph_Node>::iterator listIt1=Alarm1.get_nth_node(i);
+//        list<Graph_Node>::iterator listIt2=Alarm2.get_nth_node(i);
+//        vector<float> cpt1=listIt1->get_CPT();
+//        vector<float> cpt2=listIt2->get_CPT();
+//        for(int j=0;j<cpt1.size();j++)
+//            score+=fabs(cpt1[j]-cpt2[j]);
+//    }
+//   cout <<"Score is "<<score;
+//
+//	//cout<<Alarm.netSize();
+//
+//}
 
 
 
