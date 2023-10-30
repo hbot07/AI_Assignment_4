@@ -411,12 +411,6 @@ void read_records(const string& filename, int ncols, vector<vector<string> >& re
 }
 
 double get_prob(vector<vector<string> >& records, vector<string>& parent_perm_values, vector<int>& parent_indices, string& node_value, int node_index, vector<double>& records_weights){
-    //print 1st record
-//    for(int i=0; i<records.size(); i++){
-//        cout << records[i][0] << " ";
-//    }
-//    cout << endl;
-
     double numerator = 0.0001;
     for(int i=0; i<records[0].size(); i++){
         bool matching = true;
@@ -430,13 +424,12 @@ double get_prob(vector<vector<string> >& records, vector<string>& parent_perm_va
             numerator += records_weights.at(i);
         }
     }
-    double denominator = 0;
+    double denominator = 0.0001;
     for(int i=0; i<records_weights.size(); i++){
         denominator += records_weights.at(i);
     }
     return numerator/denominator;
 }
-
 
 
 void cartesianHelper(const std::vector<std::vector<std::string> >& lists, std::vector<std::vector<std::string> >& result, std::vector<std::string>& current, int depth) {
@@ -620,13 +613,13 @@ void expectation_step(network& Alarm, vector<vector<string> > records, vector<ve
         }
     }
 }
-
+network Alarm2=read_network((char*)"gold_alarm.bif");
 void expectation_maximisation(network& Alarm, vector<vector<string> >& records, vector<double>& records_weights){
     int num_iterations = 0;
+    double last_score = 0;
     while(true){
-        network Alarm1,Alarm2;
-        Alarm1=read_network((char*)"solved_alarm.bif");
-        Alarm2=read_network((char*)"gold_alarm.bif");
+        network Alarm1;
+        Alarm1 = Alarm;
         float score=0;
         for(int i=0;i<Alarm1.netSize();i++)
         {
@@ -657,17 +650,12 @@ void expectation_maximisation(network& Alarm, vector<vector<string> >& records, 
 
         write_bif(Alarm);
 
-        //print weights
-//        for(int i=0; i<5; i++){
-//            cout << new_records_weights[i] << " ";
-//        }
-//        cout << endl;
-
-        //print 1st records
-        for(int i=0; i<37; i++){
-            cout << new_records[i][0] << " ";
+        if(abs(score - last_score) < 0.001){
+            break;
         }
-        cout << endl;
+        else{
+            last_score = score;
+        }
     }
 }
 
