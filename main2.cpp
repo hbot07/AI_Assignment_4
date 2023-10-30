@@ -533,7 +533,8 @@ void write_bif(network& Alarm) {
             outfile << new_line << endl;
         }
         else{
-            outfile << line << endl;
+            if(!line.empty())
+                outfile << line << endl;
         }
     }
 }
